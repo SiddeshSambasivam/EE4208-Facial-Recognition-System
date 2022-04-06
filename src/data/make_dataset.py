@@ -1,8 +1,12 @@
 import os
+import logging
 from typing import List
 
 import cv2
 from .dataset import Dataset
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def get_dataset_paths(path:str) -> List[str]:
     """
@@ -35,8 +39,14 @@ def make_dataset(path:str) -> Dataset:
 
         for image_path in image_paths:
             image = cv2.imread(image_path)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            if image.shape[0] < 300 or image.shape[1] < 300:
+                logger.warning(f"Image {image_path} is too small: {image.shape}")
+            image = cv2.resize(image, (300,300))
             
             if image is not None:
                 dataset.add(image, label)
-        
+
+    dataset.encode_labels()
+
     return dataset
