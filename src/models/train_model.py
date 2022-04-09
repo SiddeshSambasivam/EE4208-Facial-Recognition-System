@@ -3,10 +3,10 @@ import logging
 
 import cv2 
 import numpy as np
-from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 
 from data import Dataset
+from features import PCA 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -29,7 +29,6 @@ def fit_model(dataset: Dataset, dim_size=50):
     labels = dataset.get_labels()
 
     pca = PCA(
-        svd_solver="randomized",
         n_components=dim_size,
         whiten=True)
 

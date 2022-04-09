@@ -3,8 +3,6 @@ import argparse
 
 import cv2
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.svm import SVC
 from imutils.video import FPS
 
 from data import make_dataset
@@ -23,10 +21,17 @@ def main(args):
     dataset = make_dataset(path)
     model, pca = fit_model(dataset, dim_size)
 
-    src = cv2.VideoCapture(1)
+    src = cv2.VideoCapture(0)
     fps = FPS().start()
 
     net = load_detection_model(model_path)
+    
+    size = (int(src.get(cv2.CAP_PROP_FRAME_WIDTH)), int(src.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    out_fps = 20  
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  
+    writer = cv2.VideoWriter()
+    out_path = model_path +'/out.mp4'    
+    writer.open(out_path, fourcc, out_fps, size, True)
 
     while True:
 
@@ -45,7 +50,7 @@ def main(args):
                 bounding_box = detections[0, 0, i, 3:7] * np.array([origin_w, origin_h, origin_w, origin_h])
                 x_start, y_start, x_end, y_end = bounding_box.astype('int')                
                 
-                face = frame[y_start:y_end, x_start:x_end]                
+                face = frame[y_start:y_end, x_start:x_end]
                 try:
                     gray = cv2.cvtColor(face,cv2.COLOR_BGR2GRAY)
                     gray = cv2.resize(gray, (300, 300))
@@ -69,9 +74,12 @@ def main(args):
 
         cv2.putText(frame, text, (15, int(origin_h * 0.92)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         cv2.imshow('Frame', frame)
+        writer.write(frame)
+
         if cv2.waitKey(1) & 0xFF == ord("q"): 
             break
-
+    
+    writer.release()
     src.release()
     cv2.destroyAllWindows()    
 
@@ -80,7 +88,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path", help="Path to the dataset")
-    parser.add_argument("-d", "--dim_size", type=int, default=100, help="Number of components")
+    parser.add_argument("-d", "--dim_size", type=int, default=50, help="Number of components")
     parser.add_argument("-m", "--model_path", help="Path to the model")
     parser.add_argument("-t", "--threshold", type=float, default=0.7, help="Threshold")
 
