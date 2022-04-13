@@ -6,7 +6,8 @@ import numpy as np
 from sklearn.svm import SVC
 
 from data import Dataset
-from features import PCA 
+from sklearn.decomposition import PCA
+# from features import PCA 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
